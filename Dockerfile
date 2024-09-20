@@ -4,5 +4,5 @@ RUN mvn clean package -DskipTests
 
 FROM openjdk:17.0.1-jdk-slim
 COPY --from=build /target/JobData-0.0.1-SNAPSHOT.jar JobData.jar
-EXPOSE 8080
+EXPOSE 8082
 ENTRYPOINT ["java","-jar","JobData.jar"]
