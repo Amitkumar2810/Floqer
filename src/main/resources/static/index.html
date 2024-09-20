@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Job Data Table</title>
+  <style>
+    th {
+        cursor: pointer;
+    }
+  </style>
+  <script>
+    async function fetchJobData() {
+        try {
+            console.log('Fetching job data...');
+            const response = await fetch('/api/jobdata'); // Match endpoint with controller
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const data = await response.json();
+            console.log('Job Data:', data); // Log the fetched data
+            populateTable(data);
+        } catch (error) {
+            console.error('Error fetching job data:', error);
+            alert('Could not load job data. Please check the console for details.');
+        }
+    }
+
+    function populateTable(data) {
+        const tableBody = document.getElementById('dataTableBody');
+        tableBody.innerHTML = ''; // Clear existing rows
+        if (!data || data.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="3">No data available</td></tr>';
+            return;
+        }
+        data.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${row.year}</td><td>${row.totalJobs}</td><td>${row.averageSalary.toFixed(2)}</td>`;
+            tr.addEventListener('click', () => fetchJobTitlesByYear(row.year));
+            tableBody.appendChild(tr);
+        });
+    }
+
+    async function fetchJobTitlesByYear(year) {
+        try {
+            console.log(`Fetching job titles for year ${year}...`);
+            const response = await fetch(`/api/job-titles?year=${year}`); // Match endpoint with controller
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const data = await response.json();
+            console.log('Job Titles Data:', data); // Log the fetched data
+            const titleTableBody = document.getElementById('titleTableBody');
+            titleTableBody.innerHTML = ''; // Clear previous data
+            if (!data || Object.keys(data).length === 0) {
+                titleTableBody.innerHTML = '<tr><td colspan="2">No job titles available</td></tr>';
+                return;
+            }
+            Object.entries(data).forEach(([title, count]) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${title}</td><td>${count}</td>`;
+                titleTableBody.appendChild(tr);
+            });
+        } catch (error) {
+            console.error('Error fetching job titles:', error);
+            alert('Could not load job titles. Please check the console for details.');
+        }
+    }
+
+    function sortTable(columnIndex, isNumeric = false) {
+        const table = document.getElementById('dataTable');
+        const rows = Array.from(table.querySelectorAll('tbody tr'));
+        let sortOrder = table.getAttribute('data-sort-order') || 'asc';
+        table.setAttribute('data-sort-order', sortOrder === 'asc' ? 'desc' : 'asc');
+
+        rows.sort((rowA, rowB) => {
+            const cellA = rowA.cells[columnIndex].innerText.trim();
+            const cellB = rowB.cells[columnIndex].innerText.trim();
+
+            if (isNumeric) {
+                return (sortOrder === 'asc' ? 1 : -1) * (parseFloat(cellA) - parseFloat(cellB));
+            } else {
+                return (sortOrder === 'asc' ? 1 : -1) * cellA.localeCompare(cellB);
+            }
+        });
+
+        // Re-append sorted rows
+        const tbody = document.querySelector("#dataTable tbody");
+        rows.forEach(row => tbody.appendChild(row));
+    }
+
+    document.addEventListener('DOMContentLoaded', fetchJobData);
+  </script>
+</head>
+<body>
+<h1>Job Data Table</h1>
+
+<table id="dataTable" border="1" data-sort-order="asc">
+  <thead>
+  <tr>
+    <th onclick="sortTable(0)">Year</th>
+    <th onclick="sortTable(1, true)">Total Jobs</th>
+    <th onclick="sortTable(2, true)">Average Salary</th>
+  </tr>
+  </thead>
+  <tbody id="dataTableBody">
+  </tbody>
+</table>
+
+<h2>Job Titles by Year</h2>
+<table id="titleTable" border="1">
+  <thead>
+  <tr>
+    <th>Job Title</th>
+    <th>Count</th>
+  </tr>
+  </thead>
+  <tbody id="titleTableBody">
+  </tbody>
+</table>
+
+</body>
+</html>

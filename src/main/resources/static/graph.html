@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Job Data Graph</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    async function fetchJobData() {
+        const response = await fetch('/api/jobdata?filePath=path/to/your/csvfile.csv');
+        const data = await response.json();
+        const labels = data.map(row => row.year);
+        const values = data.map(row => row.totalJobs);
+
+        new Chart(document.getElementById('lineChart'), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Total Jobs',
+                    data: values,
+                    borderColor: 'blue',
+                    backgroundColor: 'lightblue',
+                    fill: false
+                }]
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', fetchJobData);
+  </script>
+</head>
+<body>
+<h1>Job Data Line Graph</h1>
+<canvas id="lineChart" width="400" height="200"></canvas>
+</body>
+</html>
